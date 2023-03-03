@@ -13,7 +13,7 @@ from pathlib import Path
 from math import ceil
 from time import sleep
 
-from picamera import PiCamera
+from picamera2 import Picamera2, Preview
 from PIL import Image, ImageDraw
 from io import BytesIO
 from fractions import Fraction
@@ -82,16 +82,18 @@ print(f'Taking {x_pics}x{y_pics} pictures')
 
 overlay = plan.get_overlay(4)
 
-camera = PiCamera()
-camera.resolution = CAMERA_RES.scaled(1)
+camera = Picamera2()
+#camera.resolution = CAMERA_RES.scaled(1)
 print(f'Camera res: {CAMERA_RES.scaled(1)}')
-camera.start_preview(resolution=CAMERA_RES.scaled(4))
-if args.crop:
-    camera.zoom = (margin.top, margin.left, 1-margin.left-margin.right, 1-margin.top-margin.bottom)
+camera.start_preview(Preview.DRM, x=100, y=0, width=1720, height=1080)
+#if args.crop:
+#    camera.zoom = (margin.top, margin.left, 1-margin.left-margin.right, 1-margin.top-margin.bottom)
 
-o = camera.add_overlay(overlay.tobytes(), size=overlay.size)
-o.alpha = 32
-o.layer = 3
+camera.start()
+
+o = camera.set_overlay(overlay)
+#o.alpha = 32
+#o.layer = 3
 
 # time.sleep(5)
 

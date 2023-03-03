@@ -3,6 +3,9 @@ from typing import List
 from collections import namedtuple 
 from PIL import Image, ImageDraw
 
+import tempfile
+import cv2
+
 Margins = namedtuple('Margins', ['top', 'bottom', 'left', 'right'])
 
 @dataclass
@@ -59,9 +62,9 @@ class Plan:
 
 
     def get_overlay(self, scale):
-        img = Image.new('RGB', (self.res.x, self.res.y))
+        img = Image.new('RGBA', (self.res.x, self.res.y))
         draw = ImageDraw.Draw(img)
-        
+
         crop_top = int(self.res.y * self.obj.margins.top)
         crop_bot = int(self.res.y - (self.res.y * self.obj.margins.bottom))
         crop_left = int(self.res.x * self.obj.margins.left)
@@ -88,7 +91,7 @@ class Plan:
 
         img_res = img.resize((int(self.res.x/scale), int(self.res.y/scale)))
         print(f'Scale: {img_res}')
-        pad = Image.new('RGB', (
+        pad = Image.new('RGBA', (
             ((img_res.size[0] + 31) // 32) * 32,
             ((img_res.size[1] + 15) // 16) * 16,
         ))
@@ -98,4 +101,10 @@ class Plan:
 
         print(f' Crop: {crop_right-crop_left}x{crop_bot-crop_top}+{crop_left}+{crop_top}')
 
-        return pad
+        with tempfile.TemporaryDirectory() as tmpdir:
+            pad.save(tmpdir + '/img.png')
+            overlay = cv2.imread(tmpdir + '/img.png', cv2.IMREAD_UNCHANGED)
+
+        print(overlay.shape)
+
+        return overlay
